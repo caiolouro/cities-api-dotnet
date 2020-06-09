@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Serialization;
 
 namespace CityInfo.API
 {
@@ -15,6 +17,23 @@ namespace CityInfo.API
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services
+                .AddMvc()
+                // JSON is a default output format. This code adds XML as well˝
+                .AddMvcOptions(action =>
+                {
+                    action.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+                });
+
+                // By default, the JSON is serialized with camel case for field names. If you need the JSON field name to be exacly the same as the class, you can use the code below:
+                //.AddJsonOptions(action =>
+                //{
+                //    if (action.SerializerSettings.ContractResolver != null)
+                //    {
+                //        var contractResolver = action.SerializerSettings.ContractResolver as DefaultContractResolver;
+                //        contractResolver.NamingStrategy = null;
+                //    }
+                //});
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -34,12 +53,9 @@ namespace CityInfo.API
                 });
             }
 
-            //app.Run(async (context) =>
-            //{
-            //    await context.Response.WriteAsync("Hello World!");
-            //});
+            app.UseStatusCodePages();
 
-            app.Run((context) => throw new Exception("Test error"));
+            app.UseMvc();
         }
     }
 }
