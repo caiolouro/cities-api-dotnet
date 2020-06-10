@@ -83,5 +83,36 @@ namespace CityInfo.API.Controllers
 
             return CreatedAtRoute("GetPointOfInterest", new { cityId, id = pointOfInterestDto.Id }, pointOfInterestDto);
         }
+
+        [HttpPut("{pointOfInterestId}")]
+        public IActionResult UpdatePointOfInterest(int cityId, int pointOfInterestId, [FromBody] PointOfInterestForUpdateDto pointOfInterest)
+        {
+            if (pointOfInterest.Name == pointOfInterest.Description)
+            {
+                ModelState.AddModelError("Description", "The Name and Description can't be the same.");
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var city = CitiesDataStore.Current.Cities.FirstOrDefault(auxCity => auxCity.Id == cityId);
+            if (city == null)
+            {
+                return NotFound();
+            }
+
+            var existingPointOfInterest = city.PointsOfInterest.FirstOrDefault(auxPointOfInterest => auxPointOfInterest.Id == pointOfInterestId);
+            if (existingPointOfInterest == null)
+            {
+                return NotFound();
+            }
+
+            existingPointOfInterest.Name = pointOfInterest.Name;
+            existingPointOfInterest.Description = pointOfInterest.Description;
+
+            // This returns a 204 no content response. Maybe we could prefer to return Ok with the full updated object
+            return NoContent();
+        }
     }
 }
