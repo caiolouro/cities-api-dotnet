@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CityInfo.API.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -25,15 +26,24 @@ namespace CityInfo.API
                     action.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
                 });
 
-                // By default, the JSON is serialized with camel case for field names. If you need the JSON field name to be exacly the same as the class, you can use the code below:
-                //.AddJsonOptions(action =>
-                //{
-                //    if (action.SerializerSettings.ContractResolver != null)
-                //    {
-                //        var contractResolver = action.SerializerSettings.ContractResolver as DefaultContractResolver;
-                //        contractResolver.NamingStrategy = null;
-                //    }
-                //});
+            // By default, the JSON is serialized with camel case for field names. If you need the JSON field name to be exacly the same as the class, you can use the code below:
+            //.AddJsonOptions(action =>
+            //{
+            //    if (action.SerializerSettings.ContractResolver != null)
+            //    {
+            //        var contractResolver = action.SerializerSettings.ContractResolver as DefaultContractResolver;
+            //        contractResolver.NamingStrategy = null;
+            //    }
+            //});
+
+            // Register the service so it can be injected elsewhere. Transient, so for every request a new instance of it will be created
+
+#if DEBUG
+            services.AddTransient<IMailService, LocalMailService>();
+#else
+            services.AddTransient<IMailService, CloudMailService>();
+#endif
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
