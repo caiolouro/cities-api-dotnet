@@ -3,6 +3,7 @@ using System.Linq;
 using CityInfo.API.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace CityInfo.API.Controllers
 {
@@ -10,21 +11,38 @@ namespace CityInfo.API.Controllers
     [Route("api/cities/{cityId}/pointsofinterest")]
     public class PointsOfInterestController : ControllerBase
     {
-        public PointsOfInterestController()
+        private readonly ILogger<PointsOfInterestController> _logger;
+
+        public PointsOfInterestController(ILogger<PointsOfInterestController> logger)
         {
+            // Use the nameof expression to improve logging by adding the variable / method name to the text
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         [HttpGet]
         public IActionResult GetPointsOfInterest(int cityId)
         {
-            var existingCity = CitiesDataStore.Current.Cities.FirstOrDefault(city => city.Id == cityId);
-
-            if (existingCity == null)
+            try
             {
-                return NotFound();
-            }
+                //throw new Exception("Test some code error");
+                var existingCity = CitiesDataStore.Current.Cities.FirstOrDefault(city => city.Id == cityId);
 
-            return Ok(existingCity.PointsOfInterest);
+                if (existingCity == null)
+                {
+                    _logger.LogInformation($"City with id {cityId} is not found.");
+                    return NotFound();
+                }
+
+                return Ok(existingCity.PointsOfInterest);
+            }
+            catch (Exception ex)
+            {
+                string errorMsg = $"Error while trying to get city id {cityId} points of interest.";
+                _logger.LogCritical(errorMsg, ex);
+
+                // We could rethrow the error here, but it will be handled by the global handler (ex.: by showing the developer exception page)
+                return StatusCode(500, errorMsg);
+            }
         }
 
         [HttpGet("{id}", Name = "GetPointOfInterest")]
